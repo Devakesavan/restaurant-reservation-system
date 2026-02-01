@@ -38,6 +38,7 @@ const Reservation = sequelize.define(
       type: DataTypes.STRING(20),
       allowNull: false,
       field: 'contact_number',
+      validate: { len: [1, 20] },
     },
   },
   {

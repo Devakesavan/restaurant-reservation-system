@@ -1,0 +1,12 @@
+-- Remove incorrect UNIQUE constraint from reservations (if present).
+--
+-- If you get "You already have a reservation..." as a *different* user when
+-- seats are still available, the table had a UNIQUE index that allowed only
+-- one row per (restaurant_id, date, time). That blocked multiple users from
+-- booking the same slot.
+--
+-- Run the migration (from backend folder):
+--   npm run migrate:fix-reservations-unique
+--
+-- That script adds a non-unique index on restaurant_id (for the FK), then
+-- drops the bad unique index so multiple reservations per slot are allowed.

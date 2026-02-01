@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import AppNav from '../components/AppNav';
 import { getRestaurants, createReservation, getMyReservations, getSeatsAvailability } from '../services/api';
 
-// Build time options: 9:00 AM to 10:00 PM, 30-min steps. value = 24h "HH:mm", label = "h:mm AM/PM"
 function buildTimeOptions() {
   const options = [];
   for (let h = 9; h <= 22; h++) {
     for (const m of [0, 30]) {
       if (h === 22 && m === 30) break;
       const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-      const ampm = h < 12 ? 'AM' : 'PM';
+      const ampm = h >= 12 ? 'PM' : 'AM';
       const label = `${h12}:${m === 0 ? '00' : '30'} ${ampm}`;
       const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
       options.push({ value, label });
@@ -23,7 +23,7 @@ function timeTo12h(time24) {
   if (!time24) return '';
   const [h, m] = time24.split(':').map(Number);
   const h12 = h > 12 ? h - 12 : h === 0 ? 12 : h;
-  const ampm = h < 12 ? 'AM' : 'PM';
+  const ampm = h >= 12 ? 'PM' : 'AM';
   return `${h12}:${String(m || 0).padStart(2, '0')} ${ampm}`;
 }
 
@@ -43,6 +43,7 @@ export default function BookReservation() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('book');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     getRestaurants().then(({ data }) => setRestaurants(data)).catch(() => {});
@@ -87,6 +88,7 @@ export default function BookReservation() {
     setError('');
     setSuccess('');
     setLoading(true);
+    const slot = { restaurantId: form.restaurantId, date: form.date, time: form.time };
     try {
       await createReservation({
         restaurantId: form.restaurantId,
@@ -96,7 +98,12 @@ export default function BookReservation() {
         contactNumber: form.contactNumber,
       });
       setSuccess('Reservation created successfully.');
-      setForm({ ...form, date: '', time: '', guests: 1, contactNumber: '' });
+      // Refetch availability so the displayed seat count updates immediately
+      getSeatsAvailability(slot.restaurantId, slot.date, slot.time)
+        .then(({ data }) => setAvailability(data))
+        .catch(() => setAvailability(null));
+      // Keep restaurant, date, time so user sees updated availability; reset only guests and contact
+      setForm((prev) => ({ ...prev, guests: 1, contactNumber: '' }));
       if (tab === 'my') loadMyReservations();
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Failed to create reservation');
@@ -105,29 +112,35 @@ export default function BookReservation() {
     }
   };
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isOwner = user.role === 'owner';
-  const isAdmin = user.role === 'admin';
-
   return (
     <>
-      <nav>
-        <Link to="/">Restaurants</Link>
-        <Link to="/book" style={{ fontWeight: 'bold' }}>Book Reservation</Link>
-        {isOwner && <Link to="/owner">My Restaurants</Link>}
-        {isAdmin && <Link to="/admin">Admin Dashboard</Link>}
-      </nav>
-      <div className="container">
-        <div style={{ marginBottom: 16 }}>
-          <button type="button" className="btn btn-primary" style={{ marginRight: 8 }} onClick={() => setTab('book')}>Book a Table</button>
-          <button type="button" className="btn btn-secondary" onClick={() => setTab('my')}>My Reservations</button>
+      <AppNav user={user} />
+      <div className="app-container">
+        <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-lg)', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={`btn ${tab === 'book' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setTab('book')}
+          >
+            Book a Table
+          </button>
+          <button
+            type="button"
+            className={`btn ${tab === 'my' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setTab('my')}
+          >
+            My Reservations
+          </button>
         </div>
 
         {tab === 'book' && (
           <div className="card">
             <h2>Book a Reservation</h2>
-            {error && <p className="error">{error}</p>}
-            {success && <p className="success">{success}</p>}
+            <p className="text-muted" style={{ marginBottom: 'var(--space-lg)' }}>
+              Choose restaurant, date, time, and number of guests.
+            </p>
+            {error && <p className="error" style={{ marginBottom: 'var(--space-md)' }}>{error}</p>}
+            {success && <p className="success" style={{ marginBottom: 'var(--space-md)' }}>{success}</p>}
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Restaurant</label>
@@ -152,7 +165,7 @@ export default function BookReservation() {
                 </select>
               </div>
               {availability != null && (
-                <p className={availability.available === 0 ? 'error' : 'success'} style={{ marginBottom: 8 }}>
+                <p className={availability.available === 0 ? 'error' : 'success'} style={{ marginBottom: 'var(--space-md)' }}>
                   {availability.available === 0
                     ? 'This slot is fully booked. Please choose another date or time.'
                     : `${availability.available} seat(s) available for this slot (total capacity: ${availability.totalSeats})`}
@@ -173,7 +186,7 @@ export default function BookReservation() {
               </div>
               <div className="form-group">
                 <label>Contact number</label>
-                <input type="tel" name="contactNumber" value={form.contactNumber} onChange={handleChange} required placeholder="e.g. +1234567890" />
+                <input type="tel" name="contactNumber" value={form.contactNumber} onChange={handleChange} required placeholder="e.g. +1 234 567 8900" />
               </div>
               <button
                 type="submit"
@@ -189,15 +202,17 @@ export default function BookReservation() {
         {tab === 'my' && (
           <div className="card">
             <h2>My Reservations</h2>
-            {error && <p className="error">{error}</p>}
+            {error && <p className="error" style={{ marginBottom: 'var(--space-md)' }}>{error}</p>}
             {myReservations.length === 0 ? (
-              <p>You have no reservations.</p>
+              <p className="text-muted">You have no reservations.</p>
             ) : (
-              <ul style={{ listStyle: 'none', padding: 0 }}>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {myReservations.map((res) => (
-                  <li key={res.id} style={{ padding: '12px 0', borderBottom: '1px solid #eee' }}>
-                    <strong>{res.Restaurant?.name}</strong> — {res.Restaurant?.cuisine}, {res.Restaurant?.location}<br />
-                    {res.date} at {timeTo12h(res.time)} · {res.guests} guest(s) · Contact: {res.contactNumber}
+                  <li key={res.id} style={{ padding: 'var(--space-md) 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <strong style={{ fontFamily: 'var(--font-heading)' }}>{res.Restaurant?.name}</strong>
+                    <span className="text-muted"> — {res.Restaurant?.cuisine}, {res.Restaurant?.location}</span>
+                    <br />
+                    <span className="text-muted">{res.date} at {timeTo12h(res.time)} · {res.guests} guest(s) · Contact: {res.contactNumber}</span>
                   </li>
                 ))}
               </ul>

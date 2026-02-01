@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { register as registerApi } from '../services/api';
 
 export default function Register() {
@@ -36,60 +36,79 @@ export default function Register() {
   };
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <h1 style={{ marginTop: 0 }}>Register</h1>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              autoComplete="name"
-            />
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div className="form-group">
-            <label>Password (min 6 characters)</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
-          </div>
-          <div className="form-group">
-            <label>Role</label>
-            <select name="role" value={form.role} onChange={handleChange}>
-              <option value="user">User (book seats)</option>
-              <option value="owner">Owner (manage restaurants)</option>
-              <option value="admin">Admin (monitor system)</option>
-            </select>
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Registering...' : 'Register'}
-          </button>
-        </form>
-        <p style={{ marginTop: '1rem' }}>
-          Already have an account? <Link to="/login">Login</Link>
+    <div className="auth-layout">
+      <div className="auth-promo">
+        <h1>Fine Dining at Your Fingertips</h1>
+        <p>
+          Discover exceptional restaurants, book your perfect table, and enjoy unforgettable culinary experiences with TableTop.
         </p>
+      </div>
+      <div className="auth-panel">
+        <div className="auth-tabs">
+          <NavLink to="/login" className={({ isActive }) => `auth-tab ${isActive ? 'active' : ''}`}>Login</NavLink>
+          <NavLink to="/register" className={({ isActive }) => `auth-tab ${isActive ? 'active' : ''}`}>Register</NavLink>
+        </div>
+        <div className="auth-card">
+          <h2>Create an account</h2>
+          <p className="auth-subtitle">Join TableTop to book tables and manage your dining experience.</p>
+          {error && <p className="error" style={{ marginBottom: '1rem' }}>{error}</p>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="name">Name</label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                required
+                autoComplete="name"
+                placeholder="Your name"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password (min 6 characters)</label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="••••••••"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="role">I want to</label>
+              <select id="role" name="role" value={form.role} onChange={handleChange}>
+                <option value="user">Book seats at restaurants</option>
+                <option value="owner">Manage my own restaurants</option>
+                <option value="admin">Monitor the system (Admin)</option>
+              </select>
+            </div>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? 'Creating account...' : 'Create account'}
+            </button>
+          </form>
+          <p className="auth-footer">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

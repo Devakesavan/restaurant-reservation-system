@@ -12,8 +12,19 @@ exports.createReservation = async (req, res, next) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { restaurantId, date, time, guests, contactNumber } = req.body;
+    let { restaurantId, date, time, guests, contactNumber } = req.body;
     const userId = req.user.id;
+
+    // Coerce types so Sequelize never receives invalid values (avoids Validation error)
+    restaurantId = parseInt(restaurantId, 10);
+    date = typeof date === 'string' ? date.trim() : String(date).slice(0, 10);
+    time = String(time || '').trim().slice(0, 10);
+    guests = parseInt(guests, 10);
+    if (!Number.isInteger(guests) || guests < 1) guests = 1;
+    contactNumber = String(contactNumber || '').trim().slice(0, 20);
+    if (!contactNumber) {
+      return res.status(400).json({ message: 'Contact number is required' });
+    }
 
     const result = await sequelize.transaction(async (t) => {
       const restaurant = await Restaurant.findByPk(restaurantId, {
@@ -68,6 +79,16 @@ exports.createReservation = async (req, res, next) => {
   } catch (error) {
     if (error.statusCode) {
       return res.status(error.statusCode).json({ message: error.message });
+    }
+    // MySQL duplicate entry (e.g. unique constraint) is thrown as UniqueConstraintError with message "Validation error"
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({
+        message: 'You already have a reservation for this date and time at this restaurant. Please choose a different slot or edit your existing reservation.',
+      });
+    }
+    if (error.name === 'SequelizeValidationError') {
+      const message = error.errors?.map((e) => e.message).join('; ') || error.message;
+      return res.status(400).json({ message: `Validation failed: ${message}` });
     }
     next(error);
   }

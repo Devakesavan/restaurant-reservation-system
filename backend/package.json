@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "migrate:fix-reservations-unique": "node migrations/remove-reservations-slot-unique.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

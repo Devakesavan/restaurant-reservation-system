@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import { login } from '../services/api';
 
 export default function Login() {
@@ -32,40 +32,57 @@ export default function Login() {
   };
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 400, margin: '2rem auto' }}>
-        <h1 style={{ marginTop: 0 }}>Login</h1>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              autoComplete="current-password"
-            />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <p style={{ marginTop: '1rem' }}>
-          Don't have an account? <Link to="/register">Register</Link>
+    <div className="auth-layout">
+      <div className="auth-promo">
+        <h1>Fine Dining at Your Fingertips</h1>
+        <p>
+          Discover exceptional restaurants, book your perfect table, and enjoy unforgettable culinary experiences with TableTop.
         </p>
+      </div>
+      <div className="auth-panel">
+        <div className="auth-tabs">
+          <NavLink to="/login" className={({ isActive }) => `auth-tab ${isActive ? 'active' : ''}`}>Login</NavLink>
+          <NavLink to="/register" className={({ isActive }) => `auth-tab ${isActive ? 'active' : ''}`}>Register</NavLink>
+        </div>
+        <div className="auth-card">
+          <h2>Welcome back</h2>
+          <p className="auth-subtitle">Enter your credentials to access your account.</p>
+          {error && <p className="error" style={{ marginBottom: '1rem' }}>{error}</p>}
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+          <p className="auth-footer">
+            Don&apos;t have an account? <Link to="/register">Register</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
