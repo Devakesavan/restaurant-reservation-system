@@ -10,13 +10,11 @@ services:
       MYSQL_DATABASE: reservation_db
       MYSQL_USER: appuser
       MYSQL_PASSWORD: apppassword
-    ports:
-        []
     volumes:
       - mysql_data:/var/lib/mysql
 
   backend:
-    build: ./backend
+    image: devakesavan/restaurant-reservation-backend:latest
     container_name: backend
     restart: always
     ports:
@@ -34,7 +32,7 @@ services:
       - mysql
 
   frontend:
-    build: ./frontend
+    image: devakesavan/restaurant-reservation-frontend:latest
     container_name: frontend
     restart: always
     ports:
