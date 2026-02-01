@@ -1,6 +1,16 @@
+# dependencies
 node_modules/
+
+# env files
 .env
-*.log
-.DS_Store
+.env.*
+
+# build output
 dist/
 build/
+
+# docker volumes
+mysql_data/
+
+# logs
+npm-debug.log*
