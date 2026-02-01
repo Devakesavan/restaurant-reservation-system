@@ -3,7 +3,7 @@ const app = require('./app');
 const { sequelize, testConnection } = require('./config/database');
 const { User, Restaurant, Reservation, ActivityLog } = require('./models');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   await testConnection();
