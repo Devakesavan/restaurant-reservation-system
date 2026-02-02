@@ -3,6 +3,7 @@
 A full-stack **role-based seat booking** application with **Owner**, **Admin**, and **User** roles. Built with Node.js, Express, MySQL (Sequelize ORM), JWT auth, and React. Supports real-time seat availability, overbooking prevention, and RBAC.
 
 # End-to-End Architecture
+![End-to-End Architecture](https://github.com/Devakesavan/restaurant-reservation-system/blob/main/End-to-End-Architecture.png?raw=true)
 
 ## Tech Stack
 
