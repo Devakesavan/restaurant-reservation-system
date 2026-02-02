@@ -365,3 +365,255 @@ Recommended approach for development:
   ```bash
   docker compose up --build backend
   ```
+  # 🚀 DevOps, CI/CD & AWS Cloud Deployment Guide
+
+This project demonstrates a production-style **DevOps pipeline** for deploying a containerized full-stack application on AWS using:
+
+- Docker & Docker Compose
+- Jenkins CI/CD pipelines
+- Docker Hub image registry
+- AWS EC2
+- Prometheus + Node Exporter + Grafana monitoring stack
+- Secure credentials & secrets handling
+
+This guide explains:
+
+✔️ Where the application runs in AWS  
+✔️ How CI/CD works  
+✔️ How infrastructure is prepared  
+✔️ How monitoring is configured  
+✔️ How to reproduce the setup  
+
+---
+
+## ☁️ Live AWS Deployment
+
+### 🌍 Public Endpoints
+
+| Service | URL |
+|--------|-----|
+| Frontend Web App | http://13.233.216.11:3000 |
+| Backend API | http://13.233.216.11:5001 |
+| Node Exporter | http://13.233.216.11:9100 |
+| Prometheus | http://13.233.216.11:9090 |
+| Grafana Dashboard | http://13.233.216.11:3001 |
+
+---
+
+## 🏗️ Cloud Architecture Summary
+
+Developer → GitHub → Jenkins CI/CD → Docker Hub → AWS EC2
+
+AWS EC2 runs:
+├─ Frontend container
+├─ Backend container
+├─ MySQL container
+├─ Prometheus
+├─ Node Exporter
+└─ Grafana
+
+
+---
+
+## 🔁 CI/CD Pipeline Flow
+
+1. Developer pushes code to GitHub
+2. GitHub Webhook triggers Jenkins
+3. Jenkins builds Docker images
+4. Jenkins pushes images to Docker Hub
+5. Jenkins connects to EC2 via SSH
+6. Docker Compose pulls latest images
+7. Containers restart
+8. Monitoring stack continues scraping metrics
+
+---
+
+# 🛠️ Infrastructure Setup (AWS + DevOps)
+
+---
+
+## 1️⃣ EC2 Instance Preparation
+
+Launch an Ubuntu EC2 instance (`t2.small` or higher).
+
+Open the following inbound ports in the **Security Group**:
+
+22 → SSH
+3000 → Frontend
+5001 → Backend
+9090 → Prometheus
+9100 → Node Exporter
+3001 → Grafana
+8080 → Jenkins (if hosted here)
+
+
+---
+
+## 2️⃣ Install Docker & Docker Compose
+
+```bash
+sudo apt update
+
+curl -fsSL https://get.docker.com | sudo sh
+
+sudo usermod -aG docker ubuntu
+newgrp docker
+
+docker --version
+docker compose version
+3️⃣ Jenkins Installation (CI/CD Server)
+sudo apt update
+sudo apt install -y openjdk-17-jre
+
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
+  | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ \
+  | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+sudo apt update
+sudo apt install -y jenkins
+
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+Access Jenkins:
+
+http://<EC2-IP>:8080
+4️⃣ Jenkins Configuration
+Install plugins:
+
+Docker Pipeline
+
+GitHub Integration
+
+SSH Agent
+
+Blue Ocean
+
+Configure:
+
+Docker Hub credentials
+
+EC2 SSH private key
+
+GitHub webhook token
+
+5️⃣ Docker Hub Registry
+Jenkins pushes built images to Docker Hub:
+
+Backend image
+
+Frontend image
+
+Images are pulled automatically during deployment on EC2.
+
+📊 Monitoring & Observability Stack
+A complete monitoring stack is deployed on the EC2 instance.
+
+Components
+Tool	Purpose
+Node Exporter	OS-level metrics
+Prometheus	Scrapes metrics
+Grafana	Visualization dashboards
+6️⃣ Install Node Exporter
+cd /tmp
+wget https://github.com/prometheus/node_exporter/releases/latest/download/node_exporter-*.linux-amd64.tar.gz
+tar -xvf node_exporter-*.tar.gz
+sudo mv node_exporter-*/node_exporter /usr/local/bin/
+
+sudo useradd --no-create-home --shell /bin/false node_exporter
+
+sudo nano /etc/systemd/system/node_exporter.service
+Start service:
+
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter
+Verify:
+
+http://<EC2-IP>:9100
+7️⃣ Install Prometheus
+cd /tmp
+wget https://github.com/prometheus/prometheus/releases/latest/download/prometheus-*.linux-amd64.tar.gz
+
+tar -xvf prometheus-*.tar.gz
+sudo mv prometheus-*/prometheus /usr/local/bin/
+sudo mv prometheus-*/promtool /usr/local/bin/
+Start Prometheus and configure Node Exporter target.
+
+Verify:
+
+http://<EC2-IP>:9090
+8️⃣ Install Grafana
+sudo apt install -y apt-transport-https software-properties-common
+
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+
+sudo apt update
+sudo apt install grafana
+
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
+Access:
+
+http://<EC2-IP>:3001
+Default login:
+
+admin / admin
+📈 Dashboards Used
+Node Exporter Full
+
+Docker host metrics
+
+Disk usage
+
+CPU load
+
+Memory utilization
+
+Network traffic
+
+🔐 Security Best Practices
+SSH key authentication
+
+Jenkins credential store
+
+Docker Hub secrets in Jenkins
+
+Security groups limited to required ports
+
+IAM roles for AWS services
+
+Environment variables for secrets
+
+📈 Scalability & Future Enhancements
+Auto Scaling Groups
+
+Application Load Balancer
+
+Blue-Green deployments
+
+Canary releases
+
+Kubernetes (EKS)
+
+HTTPS with ACM
+
+Centralized logging via CloudWatch / ELK
+
+Terraform IaC
+
+✅ Summary
+This project implements a complete enterprise-style DevOps lifecycle:
+
+✔ Automated CI/CD pipelines
+✔ Containerized deployments
+✔ Cloud-hosted infrastructure
+✔ Real-time monitoring
+✔ Secure secret management
+✔ Production-ready AWS architecture
+
+  
