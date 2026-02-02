@@ -449,19 +449,28 @@ Open the following inbound ports in the **Security Group**:
 
 ---
 
-## 2️⃣ Install Docker & Docker Compose
+---
+
+## ⚙️ Infrastructure Setup
+
+### 🐳 Docker Installation
 
 ```bash
 sudo apt update
-
 curl -fsSL https://get.docker.com | sudo sh
-
 sudo usermod -aG docker ubuntu
 newgrp docker
-
 docker --version
 docker compose version
-3️⃣ Jenkins Installation (CI/CD Server)
+```
+
+---
+
+### 🤖 Jenkins Installation (CI/CD Server)
+
+#### Install Java & Jenkins
+
+```bash
 sudo apt update
 sudo apt install -y openjdk-17-jre
 
@@ -474,146 +483,187 @@ echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
 
 sudo apt update
 sudo apt install -y jenkins
-
 sudo systemctl enable jenkins
 sudo systemctl start jenkins
-Access Jenkins:
+```
 
+#### Access Jenkins
+
+```
 http://<EC2-IP>:8080
-4️⃣ Jenkins Configuration
-Install plugins:
+```
 
-Docker Pipeline
+---
 
-GitHub Integration
+### 🔧 Jenkins Configuration
 
-SSH Agent
+#### Install Plugins
 
-Blue Ocean
+- Docker Pipeline
+- GitHub Integration
+- SSH Agent
+- Blue Ocean
 
-Configure:
+#### Configure Credentials
 
-Docker Hub credentials
+- Docker Hub credentials
+- EC2 SSH private key
+- GitHub webhook token
 
-EC2 SSH private key
+---
 
-GitHub webhook token
+### 🐳 Docker Hub Registry
 
-5️⃣ Docker Hub Registry
 Jenkins pushes built images to Docker Hub:
 
-Backend image
-
-Frontend image
+- **Backend Image**
+- **Frontend Image**
 
 Images are pulled automatically during deployment on EC2.
 
-📊 Monitoring & Observability Stack
+---
+
+## 📊 Monitoring & Observability Stack
+
 A complete monitoring stack is deployed on the EC2 instance.
 
-Components
-Tool	Purpose
-Node Exporter	OS-level metrics
-Prometheus	Scrapes metrics
-Grafana	Visualization dashboards
-6️⃣ Install Node Exporter
+### Components
+
+| Tool | Purpose |
+|------|---------|
+| **Node Exporter** | OS-level metrics |
+| **Prometheus** | Metrics scraping |
+| **Grafana** | Visualization dashboards |
+
+---
+
+### 📡 Install Node Exporter
+
+```bash
 cd /tmp
 wget https://github.com/prometheus/node_exporter/releases/latest/download/node_exporter-*.linux-amd64.tar.gz
 tar -xvf node_exporter-*.tar.gz
 sudo mv node_exporter-*/node_exporter /usr/local/bin/
-
 sudo useradd --no-create-home --shell /bin/false node_exporter
-
 sudo nano /etc/systemd/system/node_exporter.service
-Start service:
+```
 
+#### Start Service
+
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable node_exporter
 sudo systemctl start node_exporter
-Verify:
+```
 
+#### Verify
+
+```
 http://<EC2-IP>:9100
-7️⃣ Install Prometheus
+```
+
+---
+
+### 📊 Install Prometheus
+
+```bash
 cd /tmp
 wget https://github.com/prometheus/prometheus/releases/latest/download/prometheus-*.linux-amd64.tar.gz
-
 tar -xvf prometheus-*.tar.gz
 sudo mv prometheus-*/prometheus /usr/local/bin/
 sudo mv prometheus-*/promtool /usr/local/bin/
-Start Prometheus and configure Node Exporter target.
+```
 
-Verify:
+Configure Prometheus to scrape Node Exporter.
 
+#### Verify
+
+```
 http://<EC2-IP>:9090
-8️⃣ Install Grafana
+```
+
+---
+
+### 📈 Install Grafana
+
+```bash
 sudo apt install -y apt-transport-https software-properties-common
-
 wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-
 sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-
 sudo apt update
 sudo apt install grafana
-
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
-Access:
+```
 
+#### Access Grafana
+
+```
 http://<EC2-IP>:3001
-Default login:
+```
 
-admin / admin
-📈 Dashboards Used
-Node Exporter Full
+**Default login:**
+- Username: `admin`
+- Password: `admin`
 
-Docker host metrics
+---
 
-Disk usage
+### 📈 Dashboards Used
 
-CPU load
+- Node Exporter Full
+- Docker Host Metrics
+- Disk Usage
+- CPU Load
+- Memory Utilization
+- Network Traffic
 
-Memory utilization
+---
 
-Network traffic
+## 🔐 Security Best Practices
 
-🔐 Security Best Practices
-SSH key authentication
+- SSH key authentication
+- Jenkins credential store
+- Docker Hub secrets in Jenkins
+- Security groups limited to required ports
+- IAM roles for AWS services
+- Environment variables for secrets
 
-Jenkins credential store
+---
 
-Docker Hub secrets in Jenkins
+## 📈 Scalability & Future Enhancements
 
-Security groups limited to required ports
+- Auto Scaling Groups
+- Application Load Balancer
+- Blue-Green deployments
+- Canary releases
+- Kubernetes (EKS)
+- HTTPS with ACM
+- Centralized logging (CloudWatch / ELK)
+- Terraform IaC
 
-IAM roles for AWS services
+---
 
-Environment variables for secrets
+## ✅ Summary
 
-📈 Scalability & Future Enhancements
-Auto Scaling Groups
-
-Application Load Balancer
-
-Blue-Green deployments
-
-Canary releases
-
-Kubernetes (EKS)
-
-HTTPS with ACM
-
-Centralized logging via CloudWatch / ELK
-
-Terraform IaC
-
-✅ Summary
 This project implements a complete enterprise-style DevOps lifecycle:
 
-✔ Automated CI/CD pipelines
-✔ Containerized deployments
-✔ Cloud-hosted infrastructure
-✔ Real-time monitoring
-✔ Secure secret management
+✔ Automated CI/CD pipelines  
+✔ Containerized deployments  
+✔ Cloud-hosted infrastructure  
+✔ Real-time monitoring  
+✔ Secure secret management  
 ✔ Production-ready AWS architecture
 
-  
+---
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+## 📧 Contact
+
+For questions or support, please open an issue in the repository.
