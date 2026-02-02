@@ -1,4 +1,4 @@
-# Restaurant Reservation System With DevOps
+# Restaurant Seat Booking Application
 
 A full-stack **role-based seat booking** application with **Owner**, **Admin**, and **User** roles. Built with Node.js, Express, MySQL (Sequelize ORM), JWT auth, and React. Supports real-time seat availability, overbooking prevention, and RBAC.
 
@@ -21,25 +21,69 @@ A full-stack **role-based seat booking** application with **Owner**, **Admin**, 
 
 ```
 restaurant-reservation-system/
+├── docker-compose.yaml
+├── Jenkinsfile
+├── README.md
 ├── backend/
-│   ├── src/
-│   │   ├── config/database.js
-│   │   ├── models/ (User, Restaurant, Reservation, ActivityLog)
-│   │   ├── controllers/ (auth, restaurant, reservation, admin)
-│   │   ├── routes/ (auth, restaurant, reservation, admin)
-│   │   ├── middlewares/ (auth, role, error)
-│   │   ├── utils/ (generateToken, activityLogger)
-│   │   ├── app.js
-│   │   └── server.js
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── pages/ (Login, Register, Restaurants, BookReservation, OwnerDashboard, AdminDashboard)
-│   │   ├── services/api.js
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   └── package.json
-└── README.md
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── migrations/
+│   │   ├── add-owner-role.sql
+│   │   ├── remove-reservations-slot-unique.js
+│   │   └── remove-reservations-slot-unique.sql
+│   ├── scripts/
+│   │   ├── add-restaurant-owner-id.js
+│   │   ├── fix-role-enum.js
+│   │   ├── sync-restaurants-table.js
+│   │   └── test-api.js
+│   └── src/
+│       ├── app.js
+│       ├── server.js
+│       ├── config/
+│       │   └── database.js
+│       ├── controllers/
+│       │   ├── adminController.js
+│       │   ├── authController.js
+│       │   ├── reservationController.js
+│       │   └── restaurantController.js
+│       ├── middlewares/
+│       │   ├── authMiddleware.js
+│       │   ├── errorMiddleware.js
+│       │   └── roleMiddleware.js
+│       ├── models/
+│       │   ├── ActivityLog.js
+│       │   ├── index.js
+│       │   ├── Reservation.js
+│       │   ├── Restaurant.js
+│       │   └── User.js
+│       ├── routes/
+│       │   ├── adminRoutes.js
+│       │   ├── authRoutes.js
+│       │   ├── reservationRoutes.js
+│       │   └── restaurantRoutes.js
+│       └── utils/
+│           ├── activityLogger.js
+│           └── generateToken.js
+└── frontend/
+    ├── Dockerfile
+    ├── index.html
+    ├── nginx.conf
+    ├── package.json
+    └── src/
+        ├── App.jsx
+        ├── index.css
+        ├── main.jsx
+        ├── components/
+        │   └── AppNav.jsx
+        ├── pages/
+        │   ├── AdminDashboard.jsx
+        │   ├── BookReservation.jsx
+        │   ├── Login.jsx
+        │   ├── OwnerDashboard.jsx
+        │   ├── Register.jsx
+        │   └── Restaurants.jsx
+        └── services/
+            └── api.js
 ```
 
 ## Backend Setup
@@ -66,7 +110,7 @@ restaurant-reservation-system/
    ```bash
    npm start
    ```
-   Server runs on `http://localhost:5000` (or `PORT` from `.env`). Sequelize will create/sync tables on first run.
+   Server runs on `http://localhost:5001` (or `PORT` from `.env`). Sequelize will create/sync tables on first run.
 
    **If upgrading from an older schema:** run once with `alter: true` in `server.js` (change `sequelize.sync({ alter: false })` to `sequelize.sync({ alter: true })`) to add `owner_id` on `restaurants`, create `activity_logs`, and add `owner` to the `users.role` ENUM. Then switch back to `alter: false`.
 
@@ -98,7 +142,7 @@ Required variables:
 
 | Variable     | Description                    | Example        |
 |-------------|--------------------------------|----------------|
-| `PORT`      | Backend port                   | `5000`         |
+| `PORT`      | Backend port                   | `5001`         |
 | `NODE_ENV`  | Environment                    | `development`  |
 | `JWT_SECRET`| Secret for signing JWT         | (strong random string) |
 | `DB_HOST`   | MySQL host                     | `localhost`    |
@@ -167,7 +211,7 @@ Optional: `JWT_EXPIRE` (default `7d`) for token expiry.
 
 ## API Documentation
 
-Base URL: `http://localhost:5000/api` (or your `PORT`).
+Base URL: `http://localhost:5001/api` (or your `PORT`).
 
 ### Auth (public)
 
@@ -212,7 +256,7 @@ If `guests` would exceed available seats for that restaurant + date + time, retu
 ## Core Features
 
 - **RBAC:** Owner (manage own restaurants & seats), Admin (monitor only), User (book seats).
-- **Real-time seat availability:** Availability computed from `totalSeats` minus sum of `guests` per (restaurant, date, time); updates on every booking
+- **Real-time seat availability:** Availability computed from `totalSeats` minus sum of `guests` per (restaurant, date, time); updates on every booking.
 - **Overbooking prevention:** Reservation creation runs in a transaction with row lock; insufficient seats return 409.
 - **Activity logging:** Register, login, and reservation create are logged for Admin dashboard.
 - **Security:** JWT, role middleware, express-validator, centralized error handling.
