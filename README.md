@@ -267,3 +267,98 @@ If `guests` would exceed available seats for that restaurant + date + time, retu
 2. In `backend`: set `.env` (including MySQL credentials), then `npm start`.
 3. In `frontend`: `npm run dev`.
 4. Open `http://localhost:3000` — register as **User**, **Owner**, or **Admin**. Owners get "My Restaurants" and can add/manage restaurants; Admins get "Admin Dashboard" (stats + activity logs); Users browse and book seats. Booking is blocked when the slot is fully booked.
+
+## Docker 📦 🔧
+
+This project includes Dockerfiles for both the **backend** and **frontend**, plus a `docker-compose.yaml` to run the full stack locally (MySQL + backend + frontend).
+
+### Prerequisites
+
+- Docker (Engine) and Docker Compose installed on your machine.
+
+### What the Compose file does
+
+- mysql — runs a MySQL 8.0 instance with a persistent volume `mysql_data`.
+  - By default the MySQL service is internal to the Docker network (no host port is published).
+- backend — builds from `./backend` (`backend/Dockerfile`) and exposes port `5001`.
+- frontend — builds from `./frontend` (`frontend/Dockerfile`) and serves the production build via nginx on port `80` (mapped to host `3000`).
+
+### Quick start (recommended)
+
+1. From the repository root, build and start the stack:
+   ```bash
+   docker compose up --build -d
+   ```
+2. Check running services:
+   ```bash
+   docker compose ps
+   ```
+3. Tail backend logs while testing:
+   ```bash
+   docker compose logs -f backend
+   ```
+4. To stop and remove containers and networks (remove volumes with `-v`):
+   ```bash
+   docker compose down -v
+   ```
+
+### Useful commands
+
+- Run a backend migration / script (example):
+  ```bash
+  docker compose exec backend npm run migrate:fix-reservations-unique
+  ```
+- Open a shell in the backend container:
+  ```bash
+  docker compose exec backend sh
+  ```
+- Connect to the MySQL container from the host (if you expose the port or use a client inside the container):
+  ```bash
+  docker exec -it mysql_db mysql -u root -p
+  # Default root password in compose: root
+  ```
+
+### Ports & persistence
+
+- Frontend: http://localhost:3000 → served by nginx (container port 80)
+- Backend: http://localhost:5001 → container port 5001
+- MySQL: not published to host by default (internal only). To expose it to the host, modify `docker-compose.yaml` and add:
+  ```yaml
+  services:
+    mysql:
+      ports:
+        - "3306:3306"
+  ```
+- The MySQL data is stored in a named volume `mysql_data` so data persists across restarts.
+
+### Environment & secrets
+
+The `docker-compose.yaml` includes inline environment variables (including `JWT_SECRET` and DB credentials). **Do not use these defaults in production.**
+
+Recommended approach for development:
+
+- Create a `.env` file at the repository root and add secrets / overrides there (Docker Compose will automatically load it):
+  ```env
+  JWT_SECRET=super_secure_jwt_secret_here
+  DB_NAME=reservation_db
+  DB_USER=appuser
+  DB_PASSWORD=strong_password_here
+  ```
+- Alternatively switch `docker-compose.yaml` to reference variables (e.g. `JWT_SECRET: ${JWT_SECRET}`) so secrets are not checked into source control.
+
+### Migrations & database initialization
+
+- On startup the backend runs `sequelize.sync({ alter: false })` (see `backend/src/server.js`), which will create tables if missing. If you need to run SQL migration files, run them manually or via the MySQL client.
+- To apply the `add-owner-role.sql` migration manually:
+  ```bash
+  # Example using the mysql client inside the MySQL container
+  docker exec -i mysql_db mysql -u root -proot reservation_db < backend/migrations/add-owner-role.sql
+  ```
+
+### Troubleshooting & tips
+
+- If the backend cannot connect to MySQL immediately on startup, check `docker compose logs mysql` for readiness. Consider adding a small wait/retry in the backend startup or run migrations after confirming the DB is ready.
+- To rebuild a single service after code changes:
+  ```bash
+  docker compose up --build backend
+  ```
