@@ -2,6 +2,8 @@
 
 A full-stack **role-based seat booking** application with **Owner**, **Admin**, and **User** roles. Built with Node.js, Express, MySQL (Sequelize ORM), JWT auth, and React. Supports real-time seat availability, overbooking prevention, and RBAC.
 
+# End-to-End Architecture
+
 ## Tech Stack
 
 | Layer   | Technologies                          |
