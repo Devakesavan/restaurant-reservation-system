@@ -656,14 +656,4 @@ This project implements a complete enterprise-style DevOps lifecycle:
 
 ---
 
-## 📝 License
 
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-
-## 📧 Contact
-
-For questions or support, please open an issue in the repository.
