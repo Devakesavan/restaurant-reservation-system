@@ -212,7 +212,7 @@ If `guests` would exceed available seats for that restaurant + date + time, retu
 ## Core Features
 
 - **RBAC:** Owner (manage own restaurants & seats), Admin (monitor only), User (book seats).
-- **Real-time seat availability:** Availability computed from `totalSeats` minus sum of `guests` per (restaurant, date, time); updates on every booking.
+- **Real-time seat availability:** Availability computed from `totalSeats` minus sum of `guests` per (restaurant, date, time); updates on every booking
 - **Overbooking prevention:** Reservation creation runs in a transaction with row lock; insufficient seats return 409.
 - **Activity logging:** Register, login, and reservation create are logged for Admin dashboard.
 - **Security:** JWT, role middleware, express-validator, centralized error handling.
