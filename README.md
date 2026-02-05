@@ -18,7 +18,7 @@ A full-stack **role-based seat booking** application with **Owner**, **Admin**, 
 |--------|--------------|
 | **Owner** | Add/manage own restaurants, set total seats, view booking status, see seat reduction when users book, prevent overbooking |
 | **Admin** | Monitor app (users count, restaurants count, booking stats daily/weekly/monthly, total seats booked), read-only activity logs |
-| **User**  | Register/login, browse restaurants, select date & time slot, check real-time availability, book seats, view confirmation; booking blocked when seats insufficient |
+| **User**  | Register/login, browse restaurants, select date & time slot, check real-time availability, book seats, view confirmation; booking blocked when seats insufficient 
 
 ## Project Structure
 
